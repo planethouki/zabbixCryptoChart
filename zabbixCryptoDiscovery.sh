@@ -1,3 +1,3 @@
 #!/bin/bash
 
-cat /opt/zabbixCryptoChar/zabbixCryptoDiscovery.txt | jq '.'
+cat /opt/zabbixCryptoChart/zabbixCryptoDiscovery.txt | jq '.'
