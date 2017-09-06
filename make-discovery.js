@@ -44,9 +44,9 @@ masters.forEach(function(marketCurrency, seq){
           findExistPair = oneMarket;
         }
       })
-      marketPairs['{#' + listFile.replace('.txt', '}')] = findExistPair;
+      marketPairs['{#' + listFile.replace('.txt', '}').toUpperCase()] = findExistPair;
     } else {
-      marketPairs['{#' + listFile.replace('.txt', '}')] = marketCurrency + '_' + 'null';
+      marketPairs['{#' + listFile.replace('.txt', '}').toUpperCase()] = marketCurrency + '_' + 'null';
     }
   })
   zabbix.data.push(marketPairs);
