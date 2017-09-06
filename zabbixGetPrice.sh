@@ -8,10 +8,10 @@ fi
 
 case "$1" in
 "coincheck" )
-  curl -sS https://coincheck.com/api/rate/$1 | jq '.rate | tonumber'
+  curl -sS https://coincheck.com/api/rate/$2 | jq '.rate | tonumber'
 ;;
 "bitbank" )
-  curl -X GET --header 'Accept: application/json' 'https://public.bitbank.cc/$1/ticker' | jq '.data.last | tonumber'
+  curl -X GET --header 'Accept: application/json' 'https://public.bitbank.cc/$2/ticker' | jq '.data.last | tonumber'
 ;;
 "poloniex" )
   curl -sS https://poloniex.com/public?command=returnTicker | jq --arg res $2 '.$1.last | tonumber'
