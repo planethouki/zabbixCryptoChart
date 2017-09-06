@@ -1,7 +1,6 @@
 ["BTC",
 "XEM",
 "MONA",
-"ETH",
 "NEO",
 "OMG",
 "ETH",
