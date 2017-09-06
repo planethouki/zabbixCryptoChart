@@ -16,13 +16,14 @@ console.log('--step01');
 // var marketCurrency = masters[0];
 // console.log('marketCurrency: ' + marketCurrency);
 // console.log('length: ' + marketCurrency.length);
-var allMarketPairs = new Object();
-allMarketPairs['{#SEQ}'] = 0;
-allMarketPairs['{#NAME}'] = 'NULL';
-listFiles.forEach(function(listFile){
-  allMarketPairs['{#' + listFile.replace('.txt', '}')] = '';
-});
-zabbix.data.push(allMarketPairs);
+
+// var allMarketPairs = new Object();
+// allMarketPairs['{#SEQ}'] = 0;
+// allMarketPairs['{#NAME}'] = 'NULL';
+// listFiles.forEach(function(listFile){
+//   allMarketPairs['{#' + listFile.replace('.txt', '}')] = '';
+// });
+// zabbix.data.push(allMarketPairs);
 
 masters.forEach(function(marketCurrency, seq){
   // console.log('--step01.1')
@@ -34,14 +35,18 @@ masters.forEach(function(marketCurrency, seq){
   listFiles.forEach(function(listFile){
     if (listFile.toUpperCase().indexOf(marketCurrency) == -1) {
 
-      marketPair = JSON.parse(fs.readFileSync('./list/'+listFile, 'utf8'));
+      var oneMarketList = JSON.parse(fs.readFileSync('./list/'+listFile, 'utf8'));
+      var findExistPair = marketCurrency + '_' + 'null';
       // console.log((marketPair));
-      marketPair.forEach(function(x){
-        if (x.toUpperCase().indexOf(marketCurrency) != -1){
+      oneMarketList.forEach(function(oneMarket){
+        if (oneMarket.toUpperCase().indexOf(marketCurrency) != -1){
           // console.log(listFile + ' ' + x);
-          marketPairs['{#' + listFile.replace('.txt', '}')] = x;
+          findExistPair = oneMarket;
         }
       })
+      marketPairs['{#' + listFile.replace('.txt', '}')] = findExistPair;
+    } else {
+      marketPairs['{#' + listFile.replace('.txt', '}')] = marketCurrency + '_' + 'null';
     }
   })
   zabbix.data.push(marketPairs);
