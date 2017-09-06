@@ -11,7 +11,7 @@ case "$1" in
   curl -sS https://coincheck.com/api/rate/$2 | jq '.rate | tonumber'
 ;;
 "bitbank" )
-  curl -sS -X GET --header 'Accept: application/json' 'https://public.bitbank.cc/$2/ticker' | jq '.data.last | tonumber'
+  curl -sS -X GET --header 'Accept: application/json' "https://public.bitbank.cc/$2/ticker" | jq '.data.last | tonumber'
 ;;
 "poloniex" )
   curl -sS https://poloniex.com/public?command=returnTicker | jq --arg res $2 '.$1.last | tonumber'
