@@ -23,6 +23,3 @@ case "$1" in
   curl -sS https://bittrex.com/api/v1.1/public/getticker?market=$2 | jq '.result.Last'
 ;;
 esac
-
-~
-~
