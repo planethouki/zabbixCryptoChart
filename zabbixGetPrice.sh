@@ -14,7 +14,7 @@ case "$1" in
   curl -sS -X GET --header 'Accept: application/json' "https://public.bitbank.cc/$2/ticker" | jq '.data.last | tonumber'
 ;;
 "poloniex" )
-  curl -sS https://poloniex.com/public?command=returnTicker | jq --arg res $2 '.$1.last | tonumber'
+  curl -sS https://poloniex.com/public?command=returnTicker | jq --arg res $2 '.[$res].last | tonumber'
 ;;
 "zaif" )
   curl -Ss https://api.zaif.jp/api/1/ticker/$2 | jq .last
