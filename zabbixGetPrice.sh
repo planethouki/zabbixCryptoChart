@@ -5,6 +5,8 @@ if [ `echo $1 | grep 'null'` ] ; then
   exit
 fi
 
+script_dir=$(cd $(dirname $BASH_SOURCE); pwd)
+cd $script_dir
 
 case "$1" in
 "coincheck" )
@@ -14,7 +16,8 @@ case "$1" in
   curl -sS -X GET --header 'Accept: application/json' "https://public.bitbank.cc/$2/ticker" | jq '.data.last | tonumber'
 ;;
 "poloniex" )
-  curl -sS https://poloniex.com/public?command=returnTicker | jq --arg res $2 '.[$res].last | tonumber'
+  #curl -sS https://poloniex.com/public?command=returnTicker | jq --arg res $2 '.[$res].last | tonumber'
+  cat data/poloniex_returnTicker.txt | jq --arg res $2 '.[$res].last | tonumber'
 ;;
 "zaif" )
   curl -Ss https://api.zaif.jp/api/1/ticker/$2 | jq .last
