@@ -32,7 +32,7 @@ cat data/cryptopia_getmarkets.txt | jq '.Data | [.[].Label] | map(select(endswit
 cat data/cryptopia_getmarkets.txt | jq '.Data | [.[].Label] | map(select(endswith("NZDT")))' > list/nzdt_cryptopia.txt
 
 #ltc
-cat data/cryptopia_getmarkets.txt | jq '.Data | [.[].Label] | map(select(endswith("LTC")))' > list/ktc_cryptopia.txt
+cat data/cryptopia_getmarkets.txt | jq '.Data | [.[].Label] | map(select(endswith("LTC")))' > list/ltc_cryptopia.txt
 
 #doge
 cat data/cryptopia_getmarkets.txt | jq '.Data | [.[].Label] | map(select(endswith("DOGE")))' > list/doge_cryptopia.txt

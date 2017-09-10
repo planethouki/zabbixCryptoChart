@@ -33,7 +33,7 @@ masters.forEach(function(marketCurrency, seq){
   marketPairs['{#NAME}'] = marketCurrency;
 
   listFiles.forEach(function(listFile){
-    //console.log(listFile);
+    console.log(listFile);
     if (listFile.toUpperCase().startsWith(marketCurrency)) {
       // marketPairs['{#' + listFile.replace('.txt', '}').toUpperCase()] = marketCurrency + '_' + 'null' + '_' + listFile;
       marketPairs['{#' + listFile.replace('.txt', '}').toUpperCase()] = 'null';

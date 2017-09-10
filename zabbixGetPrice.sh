@@ -29,4 +29,7 @@ case "$1" in
 "bitflyer" )
   curl -Ss https://api.bitflyer.jp/v1/ticker?product_code=$2 | jq '.ltp | tonumber'
 ;;
+"cryptopia" )
+  cat data/cryptopia_getmarkets.txt | jq --arg res $2 '.Data | map(select(.Label==$res)) | .[].LastPrice'
+;;
 esac
