@@ -32,11 +32,11 @@ masters.forEach(function(marketCurrency, seq){
   marketPairs['{#SEQ}'] = seq + 1;
   marketPairs['{#NAME}'] = marketCurrency;
 
-  listFiles.forEach(function(listFile){
+  listFiles.forEach(function(listFile, seqFile){
     //console.log(listFile);
     if (listFile.toUpperCase().startsWith(marketCurrency)) {
       // marketPairs['{#' + listFile.replace('.txt', '}').toUpperCase()] = marketCurrency + '_' + 'null' + '_' + listFile;
-      marketPairs['{#' + listFile.replace('.txt', '}').toUpperCase()] = 'null';
+      marketPairs['{#' + listFile.replace('.txt', '}').toUpperCase()] = 'null' + seq + '-' + seqFile;
     } else {
       var oneMarketList = JSON.parse(fs.readFileSync('./list/'+listFile, 'utf8'));
       // console.log((marketPair));
@@ -46,7 +46,7 @@ masters.forEach(function(marketCurrency, seq){
           return oneMarket;
         }
       })
-      findExistPair.push('null');
+      findExistPair.push('null' + seq + '-' + seqFile);
       marketPairs['{#' + listFile.replace('.txt', '}').toUpperCase()] = findExistPair[0];
 
     }
