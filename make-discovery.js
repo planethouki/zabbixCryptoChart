@@ -41,7 +41,7 @@ masters.forEach(function(marketCurrency, seq){
       var oneMarketList = JSON.parse(fs.readFileSync('./list/'+listFile, 'utf8'));
       // console.log((marketPair));
       var findExistPair = oneMarketList.filter(function(oneMarket){
-        if (oneMarket.toUpperCase().indexOf(marketCurrency) != -1){
+        if (oneMarket.toUpperCase().startsWith(marketCurrency) || oneMarket.toUpperCase().endsWith(marketCurrency)){
           // console.log(listFile + ' ' + x);
           return oneMarket;
         }
