@@ -8,7 +8,8 @@ var zabbix = new Object();
 zabbix.data = new Array();
 // listFiles.map(function(x){console.log(x)});
 // master.map(function(x){console.log(x)});
-// console.log(typeof(masters));
+console.log(masters);
+console.log(listFiles);
 
 console.log('--step01');
 
@@ -26,14 +27,13 @@ console.log('--step01');
 // zabbix.data.push(allMarketPairs);
 
 masters.forEach(function(marketCurrency, seq){
-  // console.log('--step01.1')
-  // console.log('marketCurrency: ' + marketCurrency);
+  console.log('--step01 of : ' + marketCurrency);
   var marketPairs = new Object();
   marketPairs['{#SEQ}'] = seq + 1;
   marketPairs['{#NAME}'] = marketCurrency;
 
   listFiles.forEach(function(listFile){
-    console.log(listFile);
+    //console.log(listFile);
     if (listFile.toUpperCase().startsWith(marketCurrency)) {
       // marketPairs['{#' + listFile.replace('.txt', '}').toUpperCase()] = marketCurrency + '_' + 'null' + '_' + listFile;
       marketPairs['{#' + listFile.replace('.txt', '}').toUpperCase()] = 'null';
@@ -51,6 +51,7 @@ masters.forEach(function(marketCurrency, seq){
 
     }
   })
+  console.log(marketPairs);
   zabbix.data.push(marketPairs);
 });
 
@@ -59,16 +60,12 @@ masters.forEach(function(marketCurrency, seq){
 console.log('--step02');
 
 // console.log(zabbix);
-// console.log(JSON.stringify(zabbix));
+console.log(JSON.stringify(zabbix));
 
 // fs.readFileSync('./list/btc_coincheck.txt', 'utf8').split('\n').map(function(x){console.log(x)});
 
 
-fs.writeFile("./zabbixCryptoDiscovery.txt", JSON.stringify(zabbix), function (err) {
-  if (err) {
-      throw err;
-  }
-});
+fs.writeFileSync("./zabbixCryptoDiscovery.txt", JSON.stringify(zabbix), 'utf8');
 
 console.log('--step03');
 
