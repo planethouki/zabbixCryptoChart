@@ -26,4 +26,7 @@ case "$1" in
   #curl -sS https://bittrex.com/api/v1.1/public/getticker?market=$2 | jq '.result.Last'
   cat data/bittrex_getmarketsummaries.txt | jq --arg res $2 '.result | map(select(.MarketName==$res)) | .[].Last | tonumber'
 ;;
+"bitflyer" )
+  curl -Ss https://api.bitflyer.jp/v1/ticker?product_code=$2 | jq '.ltp | tonumber'
+;;
 esac

@@ -11,6 +11,7 @@ cat data/zaif_currencypairs.txt | jq 'map(select(.currency_pair|endswith("btc"))
 echo -e '["ltc_btc","eth_btc","mona_btc","bcc_btc"]' | jq '.' > list/btc_bitbank.txt
 echo -e '["eth_btc","etc_btc","lsk_btc","fct_btc","xmr_btc","rep_btc","xrp_btc","zec_btc","xem_btc","ltc_btc","dash_btc","bch_btc"]' | jq '.' > list/btc_coincheck.txt
 cat data/bitflyer_markets.txt | jq '. | map(select(.product_code | length<8)) | map(select(.product_code | endswith("BTC"))) | [.[].product_code]' > list/btc_bitflyer.txt
+cat data/cryptopia_getmarkets.txt | jq '.Data | [.[].Label] | map(select(endswith("BTC")))' > list/btc_cryptopia.txt
 
 #jpy
 cat data/zaif_currencypairs.txt | jq 'map(select(.currency_pair|endswith("jpy"))) | sort_by(.seq) | [.[].currency_pair]' > list/jpy_zaif.txt
@@ -25,3 +26,13 @@ cat data/poloniex_returnTicker.txt | jq '. | keys | map(select(.|startswith("ETH
 #usdt
 cat data/bittrex_getmarketsummaries.txt | jq '.result | map(select(.MarketName|startswith("USDT"))) | sort_by(.BaseVolume) | reverse | [.[].MarketName]' > list/usdt_bittrex.txt
 cat data/poloniex_returnTicker.txt | jq '. | keys | map(select(.|startswith("USDT")))' > list/usdt_poloniex.txt
+cat data/cryptopia_getmarkets.txt | jq '.Data | [.[].Label] | map(select(endswith("USDT")))' > list/usdt_cryptopia.txt
+
+#nzdt
+cat data/cryptopia_getmarkets.txt | jq '.Data | [.[].Label] | map(select(endswith("NZDT")))' > list/nzdt_cryptopia.txt
+
+#ltc
+cat data/cryptopia_getmarkets.txt | jq '.Data | [.[].Label] | map(select(endswith("LTC")))' > list/ktc_cryptopia.txt
+
+#doge
+cat data/cryptopia_getmarkets.txt | jq '.Data | [.[].Label] | map(select(endswith("DOGE")))' > list/doge_cryptopia.txt
