@@ -12,12 +12,14 @@ echo -e '["ltc_btc","eth_btc","mona_btc","bcc_btc"]' | jq '.' > list/btc_bitbank
 echo -e '["eth_btc","etc_btc","lsk_btc","fct_btc","xmr_btc","rep_btc","xrp_btc","zec_btc","xem_btc","ltc_btc","dash_btc","bch_btc"]' | jq '.' > list/btc_coincheck.txt
 cat data/bitflyer_markets.txt | jq '. | map(select(.product_code | length<8)) | map(select(.product_code | endswith("BTC"))) | [.[].product_code]' > list/btc_bitflyer.txt
 cat data/cryptopia_getmarkets.txt | jq '.Data | [.[].Label] | map(select(endswith("BTC")))' > list/btc_cryptopia.txt
+echo -e '["mona_btc"]' | jq '.' > list/btc_fisco.txt
 
 #jpy
 cat data/zaif_currencypairs.txt | jq 'map(select(.currency_pair|endswith("jpy"))) | sort_by(.seq) | [.[].currency_pair]' > list/jpy_zaif.txt
 echo -e '["btc_jpy","xrp_jpy","bcc_jpy","mona_jpy"]' | jq '.' > list/jpy_bitbank.txt
 echo -e '["btc_jpy","eth_jpy","etc_jpy","dao_jpy","lsk_jpy","fct_jpy","xmr_jpy","rep_jpy","xrp_jpy","zec_jpy","xem_jpy","ltc_jpy","dash_jpy","bch_jpy"]' | jq '.' > list/jpy_coincheck.txt
 cat data/bitflyer_markets.txt | jq '. | map(select(.product_code | length<8)) | map(select(.product_code | endswith("JPY"))) | [.[].product_code]' > list/jpy_bitflyer.txt
+echo -e '["btc_jpy","mona_jpy"]' | jq '.' > list/jpy_fisco.txt
 
 #eth
 cat data/bittrex_getmarketsummaries.txt | jq '.result | map(select(.MarketName|startswith("ETH"))) | sort_by(.BaseVolume) | reverse | [.[].MarketName]' > list/eth_bittrex.txt
