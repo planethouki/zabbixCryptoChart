@@ -32,4 +32,7 @@ case "$1" in
 "cryptopia" )
   cat data/cryptopia_getmarkets.txt | jq --arg res $2 '.Data | map(select(.Label==$res)) | .[].LastPrice'
 ;;
+"fisco" )
+  curl -Ss https://api.fcce.jp/api/1/last_price/$2 | jq '.last_price'
+;;
 esac
