@@ -3,6 +3,7 @@
 ## Require
 * nodejs
 * zabbix
+* jq
 
 ## Installation
 
