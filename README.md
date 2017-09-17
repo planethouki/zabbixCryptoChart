@@ -1,5 +1,9 @@
 # zabbixCryptoChart
 
+## Test Environment
+* CentOS 7.3.1611
+* Zabbix 3.2.4
+
 ## Require
 * nodejs
 * zabbix
