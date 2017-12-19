@@ -5,6 +5,8 @@ var https = require('https');
 
 var app = express();
 
+var price = new Object();
+
 app.get("/discovery",(req,res) => {
   res.contentType('application/json');
 
@@ -78,8 +80,10 @@ app.get("/list",(req,res) => {
 });
 
 app.get("/price",(req,res) => {
-  var url = "https://api.zaif.jp/api/1/ticker/btc_jpy";
-  httpsget(url, res);
+  res.contentType('text/plain');
+  // var url = "https://api.zaif.jp/api/1/ticker/btc_jpy";
+  // httpsget(url, res);
+  res.send(price["btc_jpy"]);
 });
 
 
@@ -99,7 +103,22 @@ var httpsget = function(url, res) {
   });
 };
 
-
+setInterval(function() {
+  var htmlBody = '';
+  var url = "https://api.zaif.jp/api/1/ticker/btc_jpy";
+  https.get(url, (resHttp) => {
+      resHttp.setEncoding('utf8');
+      resHttp.on('data', function(resChunk){
+          htmlBody += resChunk;
+      });
+      resHttp.on('end', function(resHttpOn){
+        price["btc_jpy"] = JSON.parse(htmlBody).last;
+        console.log(price["btc_jpy"]);
+      });
+  }).on('error', function(e){
+      console.log(e.message);
+  });
+}, 5000);
 
 
 var server = app.listen(3000,() => {
