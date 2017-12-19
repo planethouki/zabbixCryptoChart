@@ -72,12 +72,20 @@ app.get("/discovery",(req,res) => {
 
 
 app.get("/list",(req,res) => {
-  res.contentType('application/json');
-
   var url = 'https://api.zaif.jp/api/1/currency_pairs/all';
-  var htmlBody = '';
+  httpsget(url, res);
 
-  https.get(url, function(resHttp){
+});
+
+app.get("/price",(req,res) => {
+  var url = "https://api.zaif.jp/api/1/ticker/btc_jpy";
+  httpsget(url, res);
+});
+
+
+var httpsget = function(url, res) {
+  var htmlBody = '';
+  https.get(url, (resHttp) => {
       resHttp.setEncoding('utf8');
       resHttp.on('data', function(resChunk){
           htmlBody += resChunk;
@@ -89,15 +97,10 @@ app.get("/list",(req,res) => {
   }).on('error', function(e){
       console.log(e.message);
   });
+};
 
 
-});
 
-
-app.get("/price",(req,res) => {
-  res.contentType('application/json');
-
-});
 
 var server = app.listen(3000,() => {
   console.log('Server is running!')
