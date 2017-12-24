@@ -7,6 +7,10 @@ var app = express();
 
 var price = new Object();
 
+price.zaif = new Object();
+price.zaif.btc = new Object();
+price.zaif.jpy = new Object();
+
 app.get("/discovery",(req,res) => {
   res.contentType('application/json');
 
@@ -74,53 +78,74 @@ app.get("/discovery",(req,res) => {
 
 
 app.get("/list",(req,res) => {
-  var url = 'https://api.zaif.jp/api/1/currency_pairs/all';
-  httpsget(url, res);
+  // var url = 'https://api.zaif.jp/api/1/currency_pairs/all';
+  
 
 });
 
 app.get("/price",(req,res) => {
   res.contentType('text/plain');
-  // var url = "https://api.zaif.jp/api/1/ticker/btc_jpy";
-  // httpsget(url, res);
-  res.send(price["btc_jpy"]);
+  var name = "";
+  var base = "";
+  var ex = "";
+  if ((req.query.ex) && (price[req.query.ex])) {
+    ex = req.query.ex;
+    if ((req.query.base) && (price[ex][req.query.base])) {
+      base = req.query.base;
+      if ((req.query.name) && (price[ex][base][req.query.name])) {
+        name = req.query.name;
+        res.send(price[ex][base][name] + '');
+      } else {
+        console.log("Bad name");
+        res.sendStatus(400);
+      }
+    } else {
+      console.log("Bad base");
+      res.sendStatus(400);
+    }
+  } else {
+    console.log("Bad ex");
+    res.sendStatus(400);
+  }
+
 });
 
 
-var httpsget = function(url, res) {
+var setPrice = function(name, base, ex, extractFunc, urlFunc) {
   var htmlBody = '';
-  https.get(url, (resHttp) => {
-      resHttp.setEncoding('utf8');
-      resHttp.on('data', function(resChunk){
+  var url = urlFunc(name, base);
+  https.get(url, res => {
+      res.setEncoding('utf8');
+      res.on('data', function(resChunk){
           htmlBody += resChunk;
       });
-      resHttp.on('end', function(resHttpOn){
-          console.log(htmlBody);
-          res.send(htmlBody);
+      res.on('end', function(resHttpOn){
+        price[ex][base][name] = extractFunc(htmlBody);
+        // console.log(price[ex][base][name]);
       });
   }).on('error', function(e){
       console.log(e.message);
   });
-};
+}
 
-setInterval(function() {
-  var htmlBody = '';
-  var url = "https://api.zaif.jp/api/1/ticker/btc_jpy";
-  https.get(url, (resHttp) => {
-      resHttp.setEncoding('utf8');
-      resHttp.on('data', function(resChunk){
-          htmlBody += resChunk;
-      });
-      resHttp.on('end', function(resHttpOn){
-        price["btc_jpy"] = JSON.parse(htmlBody).last;
-        console.log(price["btc_jpy"]);
-      });
-  }).on('error', function(e){
-      console.log(e.message);
-  });
-}, 5000);
+
+var setPriceZaif = function() {
+  var extractPriceFromZaifAPIresponce = function(jsonResponse) {
+    return JSON.parse(jsonResponse).last;
+  }
+  var buildUrlOfZaifPriceApiFromCurrancyName = function(name, base) {
+    return "https://api.zaif.jp/api/1/ticker/" + name + "_" + base;
+  }
+  setPrice("btc", "jpy", "zaif", extractPriceFromZaifAPIresponce, buildUrlOfZaifPriceApiFromCurrancyName);
+  setPrice("xem", "jpy", "zaif", extractPriceFromZaifAPIresponce, buildUrlOfZaifPriceApiFromCurrancyName);
+}
+
 
 
 var server = app.listen(3000,() => {
   console.log('Server is running!')
 });
+
+
+
+setInterval(setPriceZaif, 5000);
