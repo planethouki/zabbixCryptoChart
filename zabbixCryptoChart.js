@@ -76,10 +76,14 @@ app.get("/discovery",(req,res) => {
   // res.send(disJSON);
 });
 
+app.get("/dump",(res,req) => {
+  res.contentType('application/json');
+  res.send(JSON.stringify(price));
+});
 
 app.get("/list",(req,res) => {
   // var url = 'https://api.zaif.jp/api/1/currency_pairs/all';
-  
+
 
 });
 
