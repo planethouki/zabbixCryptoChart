@@ -11,7 +11,7 @@ price.zaif = new Object();
 price.zaif.btc = new Object();
 price.zaif.jpy = new Object();
 
-app.get("/discovery",(req,res) => {
+app.get('/discovery',(req,res) => {
   res.contentType('application/json');
 
   var arrayYourWatchCoins = JSON.parse(fs.readFileSync('./master.txt', 'utf8'));
@@ -76,26 +76,58 @@ app.get("/discovery",(req,res) => {
   // res.send(disJSON);
 });
 
-app.get("/dump",(res,req) => {
+app.get('/dump',(req,res) => {
   res.contentType('application/json');
   res.send(JSON.stringify(price));
 });
 
-app.get("heartbeat",(res,req) => {
-  res.send(200);
+
+app.get('/heartbeat',(req,res) => {
+  res.sendStatus(200);
 });
 
-app.get("/list",(req,res) => {
-  // var url = 'https://api.zaif.jp/api/1/currency_pairs/all';
 
-
+app.get('/data',(req,res) => {
+  var objArr = [
+    {'url':'https://api.bitflyer.jp/v1/markets',
+     'file':'bitflyer_markets.txt'},
+    {'url':'https://api.zaif.jp/api/1/currency_pairs/all',
+     'file':'zaif_currencypairs.txt'},
+    {'url':'https://api.kraken.com/0/public/AssetPairs',
+     'file':'kraken_assetpairs.txt'},
+    {'url':'https://bittrex.com/api/v1.1/public/getmarketsummaries',
+     'file':'bittrex_getmarketsummaries.txt'},
+    {'url':'https://poloniex.com/public?command=returnTicker',
+     'file':'poloniex_returnTicker.txt'},
+    {'url':'https://www.cryptopia.co.nz/api/GetMarkets',
+     'file':'cryptopia_getmarkets.txt'}
+  ];
+  objArr.map(writeData);
+  res.sendStatus(200);
 });
 
-app.get("/price",(req,res) => {
+var writeData = function(obj) {
+  var htmlBody = '';
+  var url = obj.url;
+  https.get(url, res => {
+      res.setEncoding('utf8');
+      res.on('data', function(resChunk){
+          htmlBody += resChunk;
+      });
+      res.on('end', function(resHttpOn){
+        fs.writeFile('data/' + obj.file ,htmlBody,'utf8');
+      });
+  }).on('error', function(e){
+      console.log(e.message);
+  });
+}
+
+
+app.get('/price',(req,res) => {
   res.contentType('text/plain');
-  var name = "";
-  var base = "";
-  var ex = "";
+  var name = '';
+  var base = '';
+  var ex = '';
   if ((req.query.ex) && (price[req.query.ex])) {
     ex = req.query.ex;
     if ((req.query.base) && (price[ex][req.query.base])) {
@@ -104,15 +136,15 @@ app.get("/price",(req,res) => {
         name = req.query.name;
         res.send(price[ex][base][name] + '');
       } else {
-        console.log("Bad name");
+        console.log('Bad name');
         res.sendStatus(400);
       }
     } else {
-      console.log("Bad base");
+      console.log('Bad base');
       res.sendStatus(400);
     }
   } else {
-    console.log("Bad ex");
+    console.log('Bad ex');
     res.sendStatus(400);
   }
 
@@ -142,10 +174,10 @@ var setPriceZaif = function() {
     return JSON.parse(jsonResponse).last;
   }
   var buildUrlOfZaifPriceApiFromCurrancyName = function(name, base) {
-    return "https://api.zaif.jp/api/1/ticker/" + name + "_" + base;
+    return 'https://api.zaif.jp/api/1/ticker/' + name + '_' + base;
   }
-  setPrice("btc", "jpy", "zaif", extractPriceFromZaifAPIresponce, buildUrlOfZaifPriceApiFromCurrancyName);
-  setPrice("xem", "jpy", "zaif", extractPriceFromZaifAPIresponce, buildUrlOfZaifPriceApiFromCurrancyName);
+  setPrice('btc', 'jpy', 'zaif', extractPriceFromZaifAPIresponce, buildUrlOfZaifPriceApiFromCurrancyName);
+  setPrice('xem', 'jpy', 'zaif', extractPriceFromZaifAPIresponce, buildUrlOfZaifPriceApiFromCurrancyName);
 }
 
 
