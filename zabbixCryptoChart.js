@@ -122,6 +122,17 @@ var writeData = function(obj) {
   });
 }
 
+app.get('/list',(req,res) => {
+  var filesPairListPerEx = fs.readdirSync('./data', 'utf8');
+  filesPairListPerEx.forEach((filePairList) => {
+    var pairList = fs.readFileSync(filePairList,　'utf8');
+    switch (filePairList) {
+      case 'bitflyer_markets.txt':
+      
+    }
+  })
+});
+
 
 app.get('/price',(req,res) => {
   res.contentType('text/plain');
