@@ -125,12 +125,25 @@ var writeData = function(obj) {
 app.get('/list',(req,res) => {
   var filesPairListPerEx = fs.readdirSync('./data', 'utf8');
   filesPairListPerEx.forEach((filePairList) => {
-    var pairList = fs.readFileSync(filePairList,　'utf8');
+    var pairList = JSON.parse(fs.readFileSync('./data/' + filePairList,　'utf8'));
+    var desiredPairList;
+    var wirtePairList = new Array();
     switch (filePairList) {
       case 'bitflyer_markets.txt':
-      
+        desiredPairList = pairList.filter((element) => {
+          if (element.product_code.length < 8 && element.product_code.endsWith('JPY')) {
+            return true;
+          } else {
+            return false;
+          }
+        })
+        desiredPairList.map((element) => {
+          wirtePairList.push(element.product_code);
+        })
+        fs.writeFile('./list/jpy_bitflyer.txt', JSON.stringify(wirtePairList), 'utf8');
     }
   })
+  res.sendStatus(200);
 });
 
 
