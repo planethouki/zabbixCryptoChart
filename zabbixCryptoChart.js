@@ -123,26 +123,86 @@ var writeData = function(obj) {
 }
 
 app.get('/list',(req,res) => {
-  var filesPairListPerEx = fs.readdirSync('./data', 'utf8');
-  filesPairListPerEx.forEach((filePairList) => {
-    var pairList = JSON.parse(fs.readFileSync('./data/' + filePairList,　'utf8'));
-    var desiredPairList;
-    var wirtePairList = new Array();
-    switch (filePairList) {
+  var fileListExCoinPair = fs.readdirSync('./data', 'utf8');
+  fileListExCoinPair.forEach((fileNameExCoinPair) => {
+    var pairList = JSON.parse(fs.readFileSync('./data/' + fileNameExCoinPair,　'utf8'));
+    var writePairList = new Array();
+    switch (fileNameExCoinPair) {
       case 'bitflyer_markets.txt':
-        desiredPairList = pairList.filter((element) => {
+        pairList.map((element) => {
           if (element.product_code.length < 8 && element.product_code.endsWith('JPY')) {
-            return true;
-          } else {
-            return false;
+            writePairList.push(element.product_code);
           }
         })
-        desiredPairList.map((element) => {
-          wirtePairList.push(element.product_code);
+        fs.writeFile('./list/jpy_bitflyer.txt', JSON.stringify(writePairList), 'utf8');
+        pairList.map((element) => {
+          if (element.product_code.length < 8 && element.product_code.endsWith('BTC')) {
+            writePairList.push(element.product_code);
+          }
         })
-        fs.writeFile('./list/jpy_bitflyer.txt', JSON.stringify(wirtePairList), 'utf8');
+        fs.writeFile('./list/btc_bitflyer.txt', JSON.stringify(writePairList), 'utf8');
+        break;
+      case 'zaif_currencypairs.txt':
+        pairList.map((element) => {
+          if (element.currency_pair.endsWith('jpy')) {
+            writePairList.push(element.currency_pair)
+          }
+        })
+        fs.writeFile('./list/jpy_zaif.txt', JSON.stringify(writePairList), 'utf8');
+        pairList.map((element) => {
+          if (element.currency_pair.endsWith('btc')) {
+            writePairList.push(element.currency_pair)
+          }
+        })
+        fs.writeFile('./list/btc_zaif.txt', JSON.stringify(writePairList), 'utf8');
+        break;
+      case 'kraken_assetpairs.txt':
+        writePairList = Object.keys(pairList.result).filter((element) => {
+          if (element.endsWith('JPY')) return true;
+        })
+        fs.writeFile('./list/jpy_kraken.txt', JSON.stringify(writePairList), 'utf8');
+        writePairList = Object.keys(pairList.result).filter((element) => {
+          if (element.endsWith('XBT')) return true;
+        })
+        fs.writeFile('./list/btc_kraken.txt', JSON.stringify(writePairList), 'utf8');
+        break;
+      case 'bittrex_getmarketsummaries.txt':
+        pairList.result.map((element) => {
+          if (element.MarketName.startsWith('BTC')) {
+            writePairList.push(element.MarketName);
+          }
+        })
+        fs.writeFile('./list/btc_bittrex.txt', JSON.stringify(writePairList), 'utf8');
+        break;
+      case 'poloniex_returnTicker.txt':
+        writePairList = Object.keys(pairList).filter((element) => {
+          if (element.startsWith('BTC')) return true;
+        })
+        fs.writeFile('./list/btc_poloniex.txt', JSON.stringify(writePairList), 'utf8')
+        break;
+      case 'cryptopia_getmarkets.txt':
+        pairList.Data.map((element) => {
+          if (element.Label.endsWith('BTC')) {
+            writePairList.push(element.Label);
+          }
+        })
+        fs.writeFile('./list/btc_cryptopia.txt', JSON.stringify(writePairList, 'utf8'));
+        break;
     }
   })
+
+  var pair_bitbank = ["btc_jpy", " xrp_jpy", " ltc_btc", " eth_btc", " mona_jpy", " mona_btc", " bcc_jpy", " bcc_btc"];
+  var jpy_bitbank = pair_bitbank.filter((element)=>{if(element.endsWith('jpy')) return true;})
+  var btc_bitbank = pair_bitbank.filter((element)=>{if(element.endsWith('btc')) return true;})
+  fs.writeFile('./list/jpy_bitbank.txt', JSON.stringify(jpy_bitbank), 'utf8');
+  fs.writeFile('./list/btc_bitbank.txt', JSON.stringify(btc_bitbank), 'utf8');
+
+  var jpy_coincheck = ["btc_jpy","eth_jpy","etc_jpy","dao_jpy","lsk_jpy","fct_jpy","xmr_jpy","rep_jpy","xrp_jpy","zec_jpy","xem_jpy","ltc_jpy","dash_jpy","bch_jpy"];
+  var btc_coincheck = ["eth_btc","etc_btc","lsk_btc","fct_btc","xmr_btc","rep_btc","xrp_btc","zec_btc","xem_btc","ltc_btc","dash_btc","bch_btc"];
+  fs.writeFile('./list/jpy_coincheck.txt', JSON.stringify(jpy_coincheck), 'utf8');
+  fs.writeFile('./list/btc_coincheck.txt', JSON.stringify(btc_coincheck), 'utf8');
+
+
   res.sendStatus(200);
 });
 
