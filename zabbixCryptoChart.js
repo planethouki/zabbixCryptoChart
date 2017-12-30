@@ -6,10 +6,59 @@ var https = require('https');
 var app = express();
 
 var price = new Object();
-
 price.zaif = new Object();
 price.zaif.btc = new Object();
 price.zaif.jpy = new Object();
+price.bitflyer = new Object();
+price.bitflyer.btc = new Object();
+price.bitflyer.jpy = new Object();
+price.coincheck = new Object();
+price.coincheck.btc = new Object();
+price.coincheck.jpy = new Object();
+price.bitbank = new Object();
+price.bitbank.btc = new Object();
+price.bitbank.jpy = new Object();
+price.bittrex = new Object();
+price.bittrex.btc = new Object();
+price.kraken = new Object();
+price.kraken.btc = new Object();
+price.kraken.jpy = new Object();
+price.poloniex = new Object();
+price.poloniex.btc = new Object();
+price.bittrex = new Object();
+price.bittrex.btc = new Object();
+price.cryptopia = new Object();
+price.cryptopia.btc = new Object();
+
+
+var pairList = (function() {
+  var listExCoinPair;
+
+  function loadSync(){
+    listExCoinPair = new Array();
+    var fileListExCoinPair = fs.readdirSync('./list', 'utf8');
+    fileListExCoinPair.map((element) => {
+      console.log(element);
+      var data = JSON.parse(fs.readFileSync('./list/' + element, 'utf8'));
+      var exCoinPair = new Object();
+      exCoinPair['name'] = element;
+      exCoinPair['data'] = data;
+      listExCoinPair.push(exCoinPair);
+    })
+  }
+
+  loadSync();
+
+  return {
+    reload: function() {
+      loadSync();
+    },
+    get: function() {
+      return listExCoinPair;
+    }
+  }
+})();
+
 
 app.get('/discovery',(req,res) => {
   res.contentType('application/json');
@@ -51,34 +100,16 @@ app.get('/discovery',(req,res) => {
 
   res.send(JSON.stringify(zabbix));
 
-
-
-
-  // var dis = new Object();
-  // dis.data = new Array();
-  // dis.data[0] = {
-  //   "{#SEQ}": 1,
-  //   "{#NAME}": "BTC",
-  //   "{#BTC_BITBANK}": "null0-0",
-  //   "{#BTC_BITTREX}": "null0-1",
-  //   "{#BTC_COINCHECK}": "null0-2",
-  //   "{#BTC_POLONIEX}": "null0-3",
-  //   "{#BTC_ZAIF}": "null0-4",
-  //   "{#ETH_BITTREX}": "null0-5",
-  //   "{#ETH_POLONIEX}": "null0-6",
-  //   "{#JPY_BITBANK}": "btc_jpy",
-  //   "{#JPY_COINCHECK}": "btc_jpy",
-  //   "{#JPY_ZAIF}": "btc_jpy",
-  //   "{#USDT_BITTREX}": "USDT-BTC",
-  //   "{#USDT_POLONIEX}": "USDT_BTC"
-  // };
-  // var disJSON = JSON.stringify(dis);
-  // res.send(disJSON);
 });
 
-app.get('/dump',(req,res) => {
+app.get('/dump1',(req,res) => {
   res.contentType('application/json');
   res.send(JSON.stringify(price));
+});
+
+app.get('/dump2',(req,res) => {
+  res.contentType('application/json');
+  res.send(JSON.stringify(pairList.get()));
 });
 
 
@@ -123,38 +154,45 @@ var writeData = function(obj) {
 }
 
 app.get('/list',(req,res) => {
-  var fileListExCoinPair = fs.readdirSync('./data', 'utf8');
-  fileListExCoinPair.forEach((fileNameExCoinPair) => {
+  console.log('/list called')
+  var fileDataExCoinPair = fs.readdirSync('./data', 'utf8');
+  fileDataExCoinPair.forEach((fileNameExCoinPair) => {
     var pairList = JSON.parse(fs.readFileSync('./data/' + fileNameExCoinPair,　'utf8'));
     var writePairList = new Array();
+    var writePairListJPY = new Array();
+    var writePairListBTC = new Array();
     switch (fileNameExCoinPair) {
       case 'bitflyer_markets.txt':
         pairList.map((element) => {
           if (element.product_code.length < 8 && element.product_code.endsWith('JPY')) {
-            writePairList.push(element.product_code);
+            writePairListJPY.push(element.product_code);
           }
         })
-        fs.writeFile('./list/jpy_bitflyer.txt', JSON.stringify(writePairList), 'utf8');
+        fs.writeFile('./list/jpy_bitflyer.txt', JSON.stringify(writePairListJPY), 'utf8');
         pairList.map((element) => {
           if (element.product_code.length < 8 && element.product_code.endsWith('BTC')) {
-            writePairList.push(element.product_code);
+            writePairListBTC.push(element.product_code);
           }
         })
-        fs.writeFile('./list/btc_bitflyer.txt', JSON.stringify(writePairList), 'utf8');
+        fs.writeFile('./list/btc_bitflyer.txt', JSON.stringify(writePairListBTC), 'utf8');
         break;
       case 'zaif_currencypairs.txt':
         pairList.map((element) => {
           if (element.currency_pair.endsWith('jpy')) {
-            writePairList.push(element.currency_pair)
+            if (element.currency_pair.indexOf('.') >= 0) {
+              writePairListJPY.push(element.currency_pair.replace('.', ''));
+            } else {
+              writePairListJPY.push(element.currency_pair)
+            }
           }
         })
-        fs.writeFile('./list/jpy_zaif.txt', JSON.stringify(writePairList), 'utf8');
+        fs.writeFile('./list/jpy_zaif.txt', JSON.stringify(writePairListJPY), 'utf8');
         pairList.map((element) => {
           if (element.currency_pair.endsWith('btc')) {
-            writePairList.push(element.currency_pair)
+            writePairListBTC.push(element.currency_pair)
           }
         })
-        fs.writeFile('./list/btc_zaif.txt', JSON.stringify(writePairList), 'utf8');
+        fs.writeFile('./list/btc_zaif.txt', JSON.stringify(writePairListBTC), 'utf8');
         break;
       case 'kraken_assetpairs.txt':
         writePairList = Object.keys(pairList.result).filter((element) => {
@@ -191,7 +229,7 @@ app.get('/list',(req,res) => {
     }
   })
 
-  var pair_bitbank = ["btc_jpy", " xrp_jpy", " ltc_btc", " eth_btc", " mona_jpy", " mona_btc", " bcc_jpy", " bcc_btc"];
+  var pair_bitbank = ["btc_jpy", "xrp_jpy", "ltc_btc", "eth_btc", "mona_jpy", "mona_btc", "bcc_jpy", "bcc_btc"];
   var jpy_bitbank = pair_bitbank.filter((element)=>{if(element.endsWith('jpy')) return true;})
   var btc_bitbank = pair_bitbank.filter((element)=>{if(element.endsWith('btc')) return true;})
   fs.writeFile('./list/jpy_bitbank.txt', JSON.stringify(jpy_bitbank), 'utf8');
@@ -201,7 +239,6 @@ app.get('/list',(req,res) => {
   var btc_coincheck = ["eth_btc","etc_btc","lsk_btc","fct_btc","xmr_btc","rep_btc","xrp_btc","zec_btc","xem_btc","ltc_btc","dash_btc","bch_btc"];
   fs.writeFile('./list/jpy_coincheck.txt', JSON.stringify(jpy_coincheck), 'utf8');
   fs.writeFile('./list/btc_coincheck.txt', JSON.stringify(btc_coincheck), 'utf8');
-
 
   res.sendStatus(200);
 });
@@ -258,18 +295,71 @@ var setPriceZaif = function() {
     return JSON.parse(jsonResponse).last;
   }
   var buildUrlOfZaifPriceApiFromCurrancyName = function(name, base) {
-    return 'https://api.zaif.jp/api/1/ticker/' + name + '_' + base;
+    var rename;
+    if (name.indexOf('cms') >= 0) {
+      rename = name.replace('cms', '.cms');
+    } else {
+      rename = name;
+    }
+    return 'https://api.zaif.jp/api/1/ticker/' + rename + '_' + base;
   }
-  setPrice('btc', 'jpy', 'zaif', extractPriceFromZaifAPIresponce, buildUrlOfZaifPriceApiFromCurrancyName);
-  setPrice('xem', 'jpy', 'zaif', extractPriceFromZaifAPIresponce, buildUrlOfZaifPriceApiFromCurrancyName);
+  pairList.get().map((pair) => {
+    if (pair.name.indexOf('zaif') >= 0) {
+      var zaif = pair.data;
+      zaif.map((element) => {
+        var splitPair = element.split('_');
+        setPrice(splitPair[0], splitPair[1], 'zaif', extractPriceFromZaifAPIresponce, buildUrlOfZaifPriceApiFromCurrancyName)
+      });
+    }
+  });
+}
+
+var setPriceCoincheck = function() {
+  var extractPriceFromCoincheckAPIresponce = function(jsonResponse) {
+    return Number(JSON.parse(jsonResponse).rate);
+  }
+  var buildUrlOfCoincheckPriceApiFromCurrancyName = function(name, base) {
+    return 'https://coincheck.com/api/rate/' + name + '_' + base;
+  }
+  pairList.get().map((pair) => {
+    if (pair.name.indexOf('coincheck') >= 0) {
+      var Coincheck = pair.data;
+      Coincheck.map((element) => {
+        var splitPair = element.split('_');
+        setPrice(splitPair[0], splitPair[1], 'coincheck', extractPriceFromCoincheckAPIresponce, buildUrlOfCoincheckPriceApiFromCurrancyName)
+      });
+    }
+  });
 }
 
 
+var setPriceBitbank = function() {
+  var extractPriceFromBitbankAPIresponce = function(jsonResponse) {
+    return Number(JSON.parse(jsonResponse).data.last);
+  }
+  var buildUrlOfBitbankkPriceApiFromCurrancyName = function(name, base) {
+    return 'https://public.bitbank.cc/' + name + '_' + base + '/ticker';
+  }
+  pairList.get().map((pair) => {
+    if (pair.name.indexOf('bitbank') >= 0) {
+      var bitbank = pair.data;
+      bitbank.map((element) => {
+        var splitPair = element.split('_');
+        setPrice(splitPair[0], splitPair[1], 'bitbank', extractPriceFromBitbankAPIresponce, buildUrlOfBitbankkPriceApiFromCurrancyName)
+      });
+    }
+  });
+}
 
 var server = app.listen(3000,() => {
   console.log('Server is running!')
 });
 
 
-
-setInterval(setPriceZaif, 5000);
+var setPriceInterval = function() {
+  setPriceZaif();
+  setPriceCoincheck();
+  setPriceBitbank();
+}
+setPriceInterval();
+setInterval(setPriceInterval, 60 * 1000);
