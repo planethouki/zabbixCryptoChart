@@ -5,6 +5,7 @@ var https = require('https');
 
 var app = express();
 
+
 var price = new Object();
 price.zaif = new Object();
 price.zaif.btc = new Object();
@@ -20,9 +21,9 @@ price.bitbank.btc = new Object();
 price.bitbank.jpy = new Object();
 price.bittrex = new Object();
 price.bittrex.btc = new Object();
-price.kraken = new Object();
-price.kraken.btc = new Object();
-price.kraken.jpy = new Object();
+// price.kraken = new Object();
+// price.kraken.btc = new Object();
+// price.kraken.jpy = new Object();
 price.poloniex = new Object();
 price.poloniex.btc = new Object();
 price.bittrex = new Object();
@@ -119,42 +120,52 @@ app.get('/heartbeat',(req,res) => {
 
 
 app.get('/data',(req,res) => {
-  var objArr = [
-    {'url':'https://api.bitflyer.jp/v1/markets',
-     'file':'bitflyer_markets.txt'},
-    {'url':'https://api.zaif.jp/api/1/currency_pairs/all',
-     'file':'zaif_currencypairs.txt'},
-    {'url':'https://api.kraken.com/0/public/AssetPairs',
-     'file':'kraken_assetpairs.txt'},
-    {'url':'https://bittrex.com/api/v1.1/public/getmarketsummaries',
-     'file':'bittrex_getmarketsummaries.txt'},
-    {'url':'https://poloniex.com/public?command=returnTicker',
-     'file':'poloniex_returnTicker.txt'},
-    {'url':'https://www.cryptopia.co.nz/api/GetMarkets',
-     'file':'cryptopia_getmarkets.txt'}
-  ];
-  objArr.map(writeData);
+  updateDataFolder();
   res.sendStatus(200);
 });
 
-var writeData = function(obj) {
-  var htmlBody = '';
-  var url = obj.url;
-  https.get(url, res => {
-      res.setEncoding('utf8');
-      res.on('data', function(resChunk){
-          htmlBody += resChunk;
+var updateDataFolder = function() {
+    var objArr = [
+      {'url':'https://api.bitflyer.jp/v1/markets',
+       'file':'bitflyer_markets.txt'},
+      {'url':'https://api.zaif.jp/api/1/currency_pairs/all',
+       'file':'zaif_currencypairs.txt'},
+      {'url':'https://api.kraken.com/0/public/AssetPairs',
+       'file':'kraken_assetpairs.txt'},
+      {'url':'https://bittrex.com/api/v1.1/public/getmarketsummaries',
+       'file':'bittrex_getmarketsummaries.txt'},
+      {'url':'https://poloniex.com/public?command=returnTicker',
+       'file':'poloniex_returnTicker.txt'},
+      {'url':'https://www.cryptopia.co.nz/api/GetMarkets',
+       'file':'cryptopia_getmarkets.txt'}
+    ];
+    process.env.NODE_TLS_REJECT_UNAUTHORIZED = "0";
+    objArr.map((obj) => {
+      var htmlBody = '';
+      var url = obj.url;
+      https.get(url, res => {
+          res.setEncoding('utf8');
+          res.on('data', function(resChunk){
+              htmlBody += resChunk;
+          });
+          res.on('end', function(resHttpOn){
+            fs.writeFile('data/' + obj.file ,htmlBody,'utf8');
+          });
+      }).on('error', function(e){
+          console.log(e.message);
       });
-      res.on('end', function(resHttpOn){
-        fs.writeFile('data/' + obj.file ,htmlBody,'utf8');
-      });
-  }).on('error', function(e){
-      console.log(e.message);
-  });
+    });
+    delete process.env.NODE_TLS_REJECT_UNAUTHORIZED;
 }
+
 
 app.get('/list',(req,res) => {
   console.log('/list called')
+  updateListFolder();
+  res.sendStatus(200);
+});
+
+var updateListFolder = function() {
   var fileDataExCoinPair = fs.readdirSync('./data', 'utf8');
   fileDataExCoinPair.forEach((fileNameExCoinPair) => {
     var pairList = JSON.parse(fs.readFileSync('./data/' + fileNameExCoinPair,　'utf8'));
@@ -235,13 +246,11 @@ app.get('/list',(req,res) => {
   fs.writeFile('./list/jpy_bitbank.txt', JSON.stringify(jpy_bitbank), 'utf8');
   fs.writeFile('./list/btc_bitbank.txt', JSON.stringify(btc_bitbank), 'utf8');
 
-  var jpy_coincheck = ["btc_jpy","eth_jpy","etc_jpy","dao_jpy","lsk_jpy","fct_jpy","xmr_jpy","rep_jpy","xrp_jpy","zec_jpy","xem_jpy","ltc_jpy","dash_jpy","bch_jpy"];
+  var jpy_coincheck = ["btc_jpy","eth_jpy","etc_jpy","lsk_jpy","fct_jpy","xmr_jpy","rep_jpy","xrp_jpy","zec_jpy","xem_jpy","ltc_jpy","dash_jpy","bch_jpy"];
   var btc_coincheck = ["eth_btc","etc_btc","lsk_btc","fct_btc","xmr_btc","rep_btc","xrp_btc","zec_btc","xem_btc","ltc_btc","dash_btc","bch_btc"];
   fs.writeFile('./list/jpy_coincheck.txt', JSON.stringify(jpy_coincheck), 'utf8');
   fs.writeFile('./list/btc_coincheck.txt', JSON.stringify(btc_coincheck), 'utf8');
-
-  res.sendStatus(200);
-});
+}
 
 
 app.get('/price',(req,res) => {
@@ -351,6 +360,145 @@ var setPriceBitbank = function() {
   });
 }
 
+var setPriceBitflyer = function() {
+  var extractPriceFromAPIresponce = function(jsonResponse) {
+    return Number(JSON.parse(jsonResponse).ltp);
+  }
+  var buildUrlOfPriceApiFromCurrancyName = function(name, base) {
+    return 'https://api.bitflyer.jp/v1/ticker?product_code=' + name.toUpperCase() + '_' + base.toUpperCase();
+  }
+  pairList.get().map((pair) => {
+    if (pair.name.indexOf('bitflyer') >= 0) {
+      pair.data.map((coinPair) => {
+        var splitPair = coinPair.toLowerCase().split('_');
+        setPrice(splitPair[0], splitPair[1], 'bitflyer', extractPriceFromAPIresponce, buildUrlOfPriceApiFromCurrancyName)
+      });
+    }
+  });
+}
+
+// var setPriceKraken = function() {
+//
+// }
+
+
+var setWholePrice = function(name, base, ex, extractFunc, urlFunc) {
+  var htmlBody = '';
+  var url = urlFunc(name, base);
+  https.get(url, res => {
+      res.setEncoding('utf8');
+      res.on('data', function(resChunk){
+          htmlBody += resChunk;
+      });
+      res.on('end', function(resHttpOn){
+        price[ex][base][name] = extractFunc(htmlBody);
+        // console.log(price[ex][base][name]);
+      });
+  }).on('error', function(e){
+      console.log(e.message);
+  });
+}
+
+
+
+var setPriceBittrex = function() {
+  var jsonToMem = function(jsonResponse) {
+    pairList.get().map((pair) => {
+      if (pair.name.indexOf('bittrex') >= 0) {
+        pair.data.map((coinPair) => {
+          var splitPair = coinPair.toLowerCase().split('-');
+          JSON.parse(jsonResponse).result.map((market) => {
+            if (market.MarketName == coinPair) {
+              price['bittrex'][splitPair[0]][splitPair[1]] = market.Last;
+            }
+          });
+        });
+      }
+    });
+  }
+  var htmlBody = '';
+  var url = 'https://bittrex.com/api/v1.1/public/getmarketsummaries';
+  https.get(url, (res) => {
+      res.setEncoding('utf8');
+      res.on('data', function(resChunk){
+          htmlBody += resChunk;
+      });
+      res.on('end', function(resHttpOn){
+        jsonToMem(htmlBody);
+      });
+  }).on('error', function(e){
+      console.log(e.message);
+  });
+}
+
+var setPricePoloniex = function() {
+  var jsonToMem = function(jsonResponse) {
+    pairList.get().map((pair) => {
+      if (pair.name.indexOf('poloniex') >= 0) {
+        pair.data.map((coinPair) => {
+          var splitPair = coinPair.toLowerCase().split('_');
+          var obj = JSON.parse(jsonResponse);
+          Object.keys(obj).map((market) => {
+            if (market == coinPair) {
+              price['poloniex'][splitPair[0]][splitPair[1]] = Number(obj[market].last);
+            }
+          });
+        });
+      }
+    });
+  }
+  var htmlBody = '';
+  var url = 'https://poloniex.com/public?command=returnTicker';
+  https.get(url, (res) => {
+      res.setEncoding('utf8');
+      res.on('data', function(resChunk){
+          htmlBody += resChunk;
+      });
+      res.on('end', function(resHttpOn){
+        jsonToMem(htmlBody);
+      });
+  }).on('error', function(e){
+      console.log(e.message);
+  });
+}
+
+var setPriceCryptopia = function() {
+  var jsonToMem = function(jsonResponse) {
+    pairList.get().map((pair) => {
+      if (pair.name.indexOf('cryptopia') >= 0) {
+        pair.data.map((coinPair) => {
+          var splitPair = coinPair.toLowerCase().split('/');
+          JSON.parse(jsonResponse).Data.map((market) => {
+            if (market.Label == coinPair) {
+              price['cryptopia'][splitPair[1]][splitPair[0]] = market.LastPrice;
+            }
+          });
+        });
+      }
+    });
+  }
+  var htmlBody = '';
+  var options = {
+    host: 'www.cryptopia.co.nz',
+    path: '/api/GetMarkets',
+    strictSSL: false
+  };
+  process.env.NODE_TLS_REJECT_UNAUTHORIZED = "0";
+  https.get(options, (res) => {
+    res.setEncoding('utf8');
+    res.on('data', function(resChunk){
+        htmlBody += resChunk;
+    });
+    res.on('end', function(resHttpOn){
+      jsonToMem(htmlBody);
+    });
+  }).on('error', function(e){
+    console.log(e.message);
+  });
+  delete process.env.NODE_TLS_REJECT_UNAUTHORIZED;
+}
+
+
 var server = app.listen(3000,() => {
   console.log('Server is running!')
 });
@@ -358,8 +506,13 @@ var server = app.listen(3000,() => {
 
 var setPriceInterval = function() {
   setPriceZaif();
-  setPriceCoincheck();
+  setPriceBittrex();
   setPriceBitbank();
+  setPriceBitflyer();
+  // setPriceKraken();
+  setPricePoloniex();
+  setPriceCoincheck();
+  setPriceCryptopia();
 }
 setPriceInterval();
 setInterval(setPriceInterval, 60 * 1000);
