@@ -290,11 +290,14 @@ var setPrice = function(name, base, ex, extractFunc, urlFunc) {
           htmlBody += resChunk;
       });
       res.on('end', function(resHttpOn){
-        price[ex][base][name] = extractFunc(htmlBody);
-        // console.log(price[ex][base][name]);
+        try {
+          price[ex][base][name] = extractFunc(htmlBody);
+        } catch (ex) {
+          console.error("setPrice", ex.message);
+        }
       });
   }).on('error', function(e){
-      console.log(e.message);
+      console.error(e.message);
   });
 }
 
