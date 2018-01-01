@@ -4,6 +4,7 @@
   "description": "* CentOS 7.3.1611\r * Zabbix 3.2.4",
   "main": "zabbixCryptoChart.js",
   "scripts": {
+    "start": "node zabbixCryptoChart.js",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "repository": {

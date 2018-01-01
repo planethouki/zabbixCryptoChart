@@ -427,7 +427,11 @@ var setPriceBittrex = function() {
           htmlBody += resChunk;
       });
       res.on('end', function(resHttpOn){
-        jsonToMem(htmlBody);
+        try {
+          jsonToMem(htmlBody);
+        } catch(ex) {
+          console.error(ex.message);
+        }
       });
   }).on('error', function(e){
       console.log(e.message);
@@ -458,7 +462,11 @@ var setPricePoloniex = function() {
           htmlBody += resChunk;
       });
       res.on('end', function(resHttpOn){
-        jsonToMem(htmlBody);
+        try {
+          jsonToMem(htmlBody);
+        } catch(ex) {
+          console.error(ex.message);
+        }
       });
   }).on('error', function(e){
       console.log(e.message);
@@ -493,12 +501,16 @@ var setPriceCryptopia = function() {
         htmlBody += resChunk;
     });
     res.on('end', function(resHttpOn){
-      jsonToMem(htmlBody);
+      try {
+        jsonToMem(htmlBody);
+      } catch(ex) {
+        console.error(ex.message);
+      }
     });
   }).on('error', function(e){
     console.log(e.message);
   });
-  delete process.env.NODE_TLS_REJECT_UNAUTHORIZED;
+  // delete process.env.NODE_TLS_REJECT_UNAUTHORIZED;
 }
 
 
