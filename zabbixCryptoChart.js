@@ -1,5 +1,6 @@
 var express = require('express');
 var fs = require('fs');
+var readline = require('readline');
 var http = require('http');
 var https = require('https');
 
@@ -35,24 +36,39 @@ price.cryptopia.btc = new Object();
 var pairList = (function() {
   var listExCoinPair;
 
-  function loadSync(){
+  function loadAsync(){
     listExCoinPair = new Array();
     var fileListExCoinPair = fs.readdirSync('./list', 'utf8');
     fileListExCoinPair.map((element) => {
-      console.log(element);
-      var data = JSON.parse(fs.readFileSync('./list/' + element, 'utf8'));
+      console.log(element + ' loading!');
+      fs.readFile('./list/' + element, 'utf8', (err, data) => {
+      var json = JSON.parse(data);
       var exCoinPair = new Object();
       exCoinPair['name'] = element;
-      exCoinPair['data'] = data;
+      exCoinPair['data'] = json;
       listExCoinPair.push(exCoinPair);
+      })
     })
   }
+
+    function loadSync(){
+      listExCoinPair = new Array();
+      var fileListExCoinPair = fs.readdirSync('./list', 'utf8');
+      fileListExCoinPair.map((element) => {
+        console.log(element + ' loading!');
+        var data = JSON.parse(fs.readFileSync('./list/' + element, 'utf8'));
+        var exCoinPair = new Object();
+        exCoinPair['name'] = element;
+        exCoinPair['data'] = data;
+        listExCoinPair.push(exCoinPair);
+      })
+    }
 
   loadSync();
 
   return {
     reload: function() {
-      loadSync();
+      loadAsync();
     },
     get: function() {
       return listExCoinPair;
@@ -60,11 +76,52 @@ var pairList = (function() {
   }
 })();
 
+var discovery = (function() {
+  var array;
 
-app.get('/discovery',(req,res) => {
+  function loadAsync(){
+    array = new Array();
+    var rs = fs.createReadStream('./master.txt');
+    var rl = readline.createInterface(rs, {});
+    rl.on('line', function(line) {
+      if (line.length > 0) {
+        array.push(line);
+      }
+    })
+    .on('error', function(e) {
+      console.error(e.message);
+    });
+  }
+
+  loadAsync();
+
+  return {
+    reload: function() {
+      loadAsync();
+    },
+    get: function() {
+      var zabbix = new Object();
+      zabbix.data = new Array();
+      array.map((coin, index) => {
+        zabbix.data.push(
+          {"{#SEQ}": index + 1, "{#NAME}": coin}
+        );
+      });
+      return zabbix;
+    }
+  }
+})();
+
+app.get('/discovery', (req,res) => {
+  res.contentType('application/json');
+  res.send(JSON.stringify(discovery.get()));
+});
+
+
+app.get('/old/discovery',(req,res) => {
   res.contentType('application/json');
 
-  var arrayYourWatchCoins = JSON.parse(fs.readFileSync('./master.txt', 'utf8'));
+  var arrayYourWatchCoins = JSON.parse(fs.readFileSync('./oldmaster.txt', 'utf8'));
   var filesCoinExchange = fs.readdirSync('./list', 'utf8');
 
   var zabbix = new Object();
@@ -103,12 +160,12 @@ app.get('/discovery',(req,res) => {
 
 });
 
-app.get('/dump1',(req,res) => {
+app.get('/memPrice',(req,res) => {
   res.contentType('application/json');
   res.send(JSON.stringify(price));
 });
 
-app.get('/dump2',(req,res) => {
+app.get('/pairList',(req,res) => {
   res.contentType('application/json');
   res.send(JSON.stringify(pairList.get()));
 });
@@ -303,6 +360,7 @@ var setPrice = function(name, base, ex, extractFunc, urlFunc) {
 
 
 var setPriceZaif = function() {
+  console.log('setPriceZaif Start');
   var extractPriceFromZaifAPIresponce = function(jsonResponse) {
     return JSON.parse(jsonResponse).last;
   }
@@ -327,6 +385,7 @@ var setPriceZaif = function() {
 }
 
 var setPriceCoincheck = function() {
+  console.log('setPriceCoincheck Start');
   var extractPriceFromCoincheckAPIresponce = function(jsonResponse) {
     return Number(JSON.parse(jsonResponse).rate);
   }
@@ -346,18 +405,30 @@ var setPriceCoincheck = function() {
 
 
 var setPriceBitbank = function() {
+  console.log('setPriceBitbank Start');
   var extractPriceFromBitbankAPIresponce = function(jsonResponse) {
     return Number(JSON.parse(jsonResponse).data.last);
   }
   var buildUrlOfBitbankkPriceApiFromCurrancyName = function(name, base) {
-    return 'https://public.bitbank.cc/' + name + '_' + base + '/ticker';
+    if (name == 'bch') {
+      return 'https://public.bitbank.cc/bcc_' + base + '/ticker';
+    } else {
+      return 'https://public.bitbank.cc/' + name + '_' + base + '/ticker';
+    }
   }
   pairList.get().map((pair) => {
     if (pair.name.indexOf('bitbank') >= 0) {
       var bitbank = pair.data;
       bitbank.map((element) => {
         var splitPair = element.split('_');
-        setPrice(splitPair[0], splitPair[1], 'bitbank', extractPriceFromBitbankAPIresponce, buildUrlOfBitbankkPriceApiFromCurrancyName)
+        var base = splitPair[1];
+        var name;
+        if (splitPair[0] == 'bcc') {
+          name = 'bch';
+        } else {
+          name = splitPair[0];
+        }
+        setPrice(name, base, 'bitbank', extractPriceFromBitbankAPIresponce, buildUrlOfBitbankkPriceApiFromCurrancyName)
       });
     }
   });
@@ -410,6 +481,9 @@ var setPriceBittrex = function() {
       if (pair.name.indexOf('bittrex') >= 0) {
         pair.data.map((coinPair) => {
           var splitPair = coinPair.toLowerCase().split('-');
+          if (splitPair[0] == 'bcc') {
+            splitPair[0] = 'bch';
+          }
           JSON.parse(jsonResponse).result.map((market) => {
             if (market.MarketName == coinPair) {
               price['bittrex'][splitPair[0]][splitPair[1]] = market.Last;
@@ -514,9 +588,6 @@ var setPriceCryptopia = function() {
 }
 
 
-var server = app.listen(3000,() => {
-  console.log('Server is running!')
-});
 
 
 var setPriceInterval = function() {
@@ -531,3 +602,8 @@ var setPriceInterval = function() {
 }
 setPriceInterval();
 setInterval(setPriceInterval, 60 * 1000);
+
+
+var server = app.listen(3000,() => {
+  console.log('Server is running!')
+});
