@@ -3,6 +3,7 @@ var fs = require('fs');
 var readline = require('readline');
 var http = require('http');
 var https = require('https');
+var request = require('request');
 
 var app = express();
 
@@ -196,23 +197,30 @@ var updateDataFolder = function() {
       {'url':'https://www.cryptopia.co.nz/api/GetMarkets',
        'file':'cryptopia_getmarkets.txt'}
     ];
-    process.env.NODE_TLS_REJECT_UNAUTHORIZED = "0";
+    // process.env.NODE_TLS_REJECT_UNAUTHORIZED = "0";
     objArr.map((obj) => {
-      var htmlBody = '';
-      var url = obj.url;
-      https.get(url, res => {
-          res.setEncoding('utf8');
-          res.on('data', function(resChunk){
-              htmlBody += resChunk;
-          });
-          res.on('end', function(resHttpOn){
-            fs.writeFile('data/' + obj.file ,htmlBody,'utf8');
-          });
-      }).on('error', function(e){
-          console.log(e.message);
+      request.get({'url': obj.url}, (error, res, body) => {
+        if (error) {
+          console.error(obj.file + ' cannot get');
+          console.error(error);
+        } else {
+          console.log(obj.file + 'writing!')
+          fs.writeFile('data/' + obj.file ,body,'utf8');
+        }
       });
+      // https.get(url, res => {
+      //     res.setEncoding('utf8');
+      //     res.on('data', function(resChunk){
+      //         htmlBody += resChunk;
+      //     });
+      //     res.on('end', function(resHttpOn){
+      //       fs.writeFile('data/' + obj.file ,htmlBody,'utf8');
+      //     });
+      // }).on('error', function(e){
+      //     console.log(e.message);
+      // });
     });
-    delete process.env.NODE_TLS_REJECT_UNAUTHORIZED;
+    // delete process.env.NODE_TLS_REJECT_UNAUTHORIZED;
 }
 
 
