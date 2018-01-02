@@ -81,6 +81,7 @@ var discovery = (function() {
   var array;
 
   function loadAsync(){
+    console.log('discovery.loadAsync');
     array = new Array();
     var rs = fs.createReadStream('./master.txt');
     var rl = readline.createInterface(rs, {});
@@ -109,6 +110,9 @@ var discovery = (function() {
         );
       });
       return zabbix;
+    },
+    array: function() {
+      return array;
     }
   }
 })();
@@ -345,24 +349,29 @@ app.get('/price',(req,res) => {
 
 });
 
+console.log(discovery.array());
 
 var setPrice = function(name, base, ex, extractFunc, urlFunc) {
-  var htmlBody = '';
-  var url = urlFunc(name, base);
-  https.get(url, res => {
-      res.setEncoding('utf8');
-      res.on('data', function(resChunk){
-          htmlBody += resChunk;
+  discovery.array().map((coin) => {
+    if (coin == name) {
+      var htmlBody = '';
+      var url = urlFunc(name, base);
+      https.get(url, res => {
+          res.setEncoding('utf8');
+          res.on('data', function(resChunk){
+              htmlBody += resChunk;
+          });
+          res.on('end', function(resHttpOn){
+            try {
+              price[ex][base][name] = extractFunc(htmlBody);
+            } catch (ex) {
+              console.error("setPrice", ex.message);
+            }
+          });
+      }).on('error', function(e){
+          console.error(e.message);
       });
-      res.on('end', function(resHttpOn){
-        try {
-          price[ex][base][name] = extractFunc(htmlBody);
-        } catch (ex) {
-          console.error("setPrice", ex.message);
-        }
-      });
-  }).on('error', function(e){
-      console.error(e.message);
+    }
   });
 }
 
@@ -463,23 +472,6 @@ var setPriceBitflyer = function() {
 //
 // }
 
-
-var setWholePrice = function(name, base, ex, extractFunc, urlFunc) {
-  var htmlBody = '';
-  var url = urlFunc(name, base);
-  https.get(url, res => {
-      res.setEncoding('utf8');
-      res.on('data', function(resChunk){
-          htmlBody += resChunk;
-      });
-      res.on('end', function(resHttpOn){
-        price[ex][base][name] = extractFunc(htmlBody);
-        // console.log(price[ex][base][name]);
-      });
-  }).on('error', function(e){
-      console.log(e.message);
-  });
-}
 
 
 
@@ -599,14 +591,19 @@ var setPriceCryptopia = function() {
 
 
 var setPriceInterval = function() {
-  setPriceZaif();
-  setPriceBittrex();
-  setPriceBitbank();
-  setPriceBitflyer();
+  function getRandomInt() {
+    var max = 30 * 1000;
+    var min = 0;
+    return Math.floor( Math.random() * (max - min + 1) ) + min;
+  }
+  setTimeout(setPriceZaif, getRandomInt());
+  setTimeout(setPriceBittrex, getRandomInt());
+  setTimeout(setPriceBitbank, getRandomInt());
+  setTimeout(setPriceBitflyer, getRandomInt());
   // setPriceKraken();
-  setPricePoloniex();
-  setPriceCoincheck();
-  setPriceCryptopia();
+  setTimeout(setPricePoloniex, getRandomInt());
+  setTimeout(setPriceCoincheck, getRandomInt());
+  setTimeout(setPriceCryptopia, getRandomInt());
 }
 setPriceInterval();
 setInterval(setPriceInterval, 60 * 1000);
