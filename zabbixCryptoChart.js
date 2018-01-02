@@ -452,6 +452,7 @@ var setPriceBitbank = function() {
 }
 
 var setPriceBitflyer = function() {
+  console.log('setPriceBitflyer Start');
   var extractPriceFromAPIresponce = function(jsonResponse) {
     return Number(JSON.parse(jsonResponse).ltp);
   }
@@ -476,6 +477,7 @@ var setPriceBitflyer = function() {
 
 
 var setPriceBittrex = function() {
+  console.log('setPriceBittrex Start');
   var jsonToMem = function(jsonResponse) {
     pairList.get().map((pair) => {
       if (pair.name.indexOf('bittrex') >= 0) {
@@ -513,6 +515,7 @@ var setPriceBittrex = function() {
 }
 
 var setPricePoloniex = function() {
+  console.log('setPricePoloniex Start');
   var jsonToMem = function(jsonResponse) {
     pairList.get().map((pair) => {
       if (pair.name.indexOf('poloniex') >= 0) {
@@ -548,6 +551,7 @@ var setPricePoloniex = function() {
 }
 
 var setPriceCryptopia = function() {
+  console.log('setPriceCryptopia Start');
   var jsonToMem = function(jsonResponse) {
     pairList.get().map((pair) => {
       if (pair.name.indexOf('cryptopia') >= 0) {
